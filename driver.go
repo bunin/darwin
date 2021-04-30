@@ -43,7 +43,7 @@ func NewGenericDriver(db *sql.DB, dialect Dialect) *GenericDriver {
 	return &GenericDriver{DB: db, Dialect: dialect}
 }
 
-// Create create the table darwin_migrations if necessary
+// Create create the migrations table if necessary
 func (m *GenericDriver) Create() error {
 	err := transaction(m.DB, func(tx *sql.Tx) error {
 		_, err := tx.Exec(m.Dialect.CreateTableSQL())

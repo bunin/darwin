@@ -2,6 +2,7 @@ package darwin
 
 import (
 	"crypto/md5"
+	"database/sql"
 	"fmt"
 	"sort"
 	"sync"
@@ -21,6 +22,12 @@ const (
 	// Error means that the migration could not be applied to the database
 	Error
 )
+
+var tableName = "darwin_migrations"
+
+func SetTable(name string) {
+	tableName = name
+}
 
 func (s Status) String() string {
 	switch s {
@@ -45,6 +52,7 @@ type Migration struct {
 	Version     float64
 	Description string
 	Script      string
+	Exec        func(db *sql.DB) error
 }
 
 // Checksum calculate the Script md5
@@ -158,7 +166,7 @@ func Validate(d Driver, migrations []Migration) error {
 
 // Info returns the status of all migrations
 func Info(d Driver, migrations []Migration) ([]MigrationInfo, error) {
-	info := []MigrationInfo{}
+	var info []MigrationInfo
 	records, err := d.All()
 
 	if err != nil {
@@ -231,6 +239,15 @@ func Migrate(d Driver, migrations []Migration, infoChan chan MigrationInfo) erro
 		if err != nil {
 			notify(err, migration, infoChan)
 			return err
+		}
+
+		if migration.Exec != nil {
+			if v, ok := d.(*GenericDriver); ok {
+				if err = migration.Exec(v.DB); err != nil {
+					notify(err, migration, infoChan)
+					return err
+				}
+			}
 		}
 
 		err = d.Insert(MigrationRecord{
@@ -348,7 +365,7 @@ func planMigration(d Driver, migrations []Migration) ([]Migration, error) {
 	}
 
 	// Which migrations needs to be applied
-	planned := []Migration{}
+	var planned []Migration
 
 	// Make sure the order is correct
 	// Do not trust the driver.

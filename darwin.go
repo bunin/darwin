@@ -49,7 +49,7 @@ var mutex = &sync.Mutex{}
 
 // Migration represents a database migrations.
 type Migration struct {
-	Version     float64
+	Version     float32
 	Description string
 	Script      string
 	Exec        func(db *sql.DB) error
@@ -101,7 +101,7 @@ func New(driver Driver, migrations []Migration, infoChan chan MigrationInfo) Dar
 
 // DuplicateMigrationVersionError is used to report when the migration list has duplicated entries
 type DuplicateMigrationVersionError struct {
-	Version float64
+	Version float32
 }
 
 func (d DuplicateMigrationVersionError) Error() string {
@@ -110,7 +110,7 @@ func (d DuplicateMigrationVersionError) Error() string {
 
 // IllegalMigrationVersionError is used to report when the migration has an illegal Version number
 type IllegalMigrationVersionError struct {
-	Version float64
+	Version float32
 }
 
 func (i IllegalMigrationVersionError) Error() string {
@@ -119,7 +119,7 @@ func (i IllegalMigrationVersionError) Error() string {
 
 // RemovedMigrationError is used to report when a migration is removed from the list
 type RemovedMigrationError struct {
-	Version float64
+	Version float32
 }
 
 func (r RemovedMigrationError) Error() string {
@@ -128,7 +128,7 @@ func (r RemovedMigrationError) Error() string {
 
 // InvalidChecksumError is used to report when a migration was modified
 type InvalidChecksumError struct {
-	Version float64
+	Version float32
 }
 
 func (i InvalidChecksumError) Error() string {
@@ -290,8 +290,8 @@ func notify(err error, migration Migration, infoChan chan MigrationInfo) {
 
 }
 
-func wasRemovedMigration(applied []MigrationRecord, migrations []Migration) (float64, bool) {
-	versionMap := map[float64]Migration{}
+func wasRemovedMigration(applied []MigrationRecord, migrations []Migration) (float32, bool) {
+	versionMap := map[float32]Migration{}
 
 	for _, migration := range migrations {
 		versionMap[migration.Version] = migration
@@ -306,8 +306,8 @@ func wasRemovedMigration(applied []MigrationRecord, migrations []Migration) (flo
 	return 0, false
 }
 
-func isInvalidChecksumMigration(applied []MigrationRecord, migrations []Migration) (float64, bool) {
-	versionMap := map[float64]MigrationRecord{}
+func isInvalidChecksumMigration(applied []MigrationRecord, migrations []Migration) (float32, bool) {
+	versionMap := map[float32]MigrationRecord{}
 
 	for _, migration := range applied {
 		versionMap[migration.Version] = migration
@@ -324,7 +324,7 @@ func isInvalidChecksumMigration(applied []MigrationRecord, migrations []Migratio
 	return 0, false
 }
 
-func isInvalidVersion(migrations []Migration) (float64, bool) {
+func isInvalidVersion(migrations []Migration) (float32, bool) {
 	for _, migration := range migrations {
 		version := migration.Version
 
@@ -336,8 +336,8 @@ func isInvalidVersion(migrations []Migration) (float64, bool) {
 	return 0, false
 }
 
-func isDuplicated(migrations []Migration) (float64, bool) {
-	unique := map[float64]Migration{}
+func isDuplicated(migrations []Migration) (float32, bool) {
+	unique := map[float32]Migration{}
 
 	for _, migration := range migrations {
 		_, exists := unique[migration.Version]

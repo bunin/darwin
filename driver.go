@@ -8,7 +8,7 @@ import (
 
 // MigrationRecord is the entry in schema table
 type MigrationRecord struct {
-	Version       float64
+	Version       float32
 	Description   string
 	Checksum      string
 	AppliedAt     time.Time
@@ -82,11 +82,11 @@ func (m *GenericDriver) All() ([]MigrationRecord, error) {
 
 	for rows.Next() {
 		var (
-			version       float64
+			version       float32
 			description   string
 			checksum      string
 			appliedAt     int64
-			executionTime float64
+			executionTime float32
 		)
 
 		rows.Scan(
